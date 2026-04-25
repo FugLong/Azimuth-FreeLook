@@ -9,8 +9,9 @@ Native code targets **MSVC x64** (injected DLL + small injector). macOS can stil
 | Path | Role |
 |------|------|
 | `native/injector` | `azimuth_injector.exe` — loads `azimuth_freelook.dll` into a target process by PID (scaffold). |
-| `native/freelook_dll` | `azimuth_freelook.dll` — in-process module (UE hooks not implemented yet). |
-| `native/include/freelook/opentrack_udp.hpp` | Shared constants/layout for OpenTrack’s 48-byte UDP pose packet. |
+| `native/freelook_dll` | `azimuth_freelook.dll` — injected module: engine discovery (module + embedded build label + best-effort `GWorld`). |
+| `native/include/freelook/*` | Shared headers (OpenTrack UDP layout, logging, PE/pattern helpers, UE discovery API). |
+| `docs/ue-runtime-injection.md` | Contributor-oriented notes on UE shipping builds + our bootstrap strategy. |
 | `tools/opentrack_udp_echo.py` | Cross-platform UDP listener for quick OpenTrack sanity checks. |
 
 ## Build (Windows)
@@ -35,6 +36,16 @@ Use **x64** only; match the architecture of the game process.
 2. In OpenTrack: **Output → UDP over network**, set the IP of this machine and port **4242**.
 
 You should see yaw/pitch/roll and translation values as you move the tracker.
+
+## Unreal discovery logs (Windows)
+
+After injection into a UE **x64** game process, use **DebugView** (Sysinternals) or a debugger to read `OutputDebugString` lines from `azimuth_freelook.dll`. You should see:
+
+- the resolved `UnrealEngine-Win64-*.dll` path
+- an embedded `++UE…` style build label when present
+- occasional `GWorld candidate` pointers when the scanner finds a plausible match
+
+This is intentionally diagnostic; see `docs/ue-runtime-injection.md` for limitations.
 
 ## Injector usage (Windows, experimental)
 
